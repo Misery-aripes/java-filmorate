@@ -36,7 +36,7 @@ public class FilmController {
     public Film updateFilm(@RequestBody Film film) {
         validateFilm(film);
         for (int i = 0; i < films.size(); i++) {
-            if(films.get(i).getId() == film.getId()) {
+            if (films.get(i).getId() == film.getId()) {
                 films.set(i, film);
                 log.info("Обновлен фильм с id: {} ", film.getId());
                 return film;
@@ -56,9 +56,8 @@ public class FilmController {
         if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(MIN_RELEASE_DATE)) {
             throw new ValidationException("Дата релиза не может быть раньше 28 декабря 1895 года.");
         }
-        if (film.getDuration() <= 0){
+        if (film.getDuration() <= 0) {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
     }
-    private void validateId(Film film) {}
 }
