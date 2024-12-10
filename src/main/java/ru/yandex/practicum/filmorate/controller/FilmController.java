@@ -60,4 +60,5 @@ public class FilmController {
             throw new ValidationException("Продолжительность фильма должна быть положительным числом.");
         }
     }
+    private void validateId(Film film) {}
 }
