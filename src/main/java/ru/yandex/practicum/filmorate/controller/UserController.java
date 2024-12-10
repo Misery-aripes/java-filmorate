@@ -45,7 +45,7 @@ public class UserController {
         throw new IllegalArgumentException("Пользователь с id " + user.getId() + " не найден.");
     }
 
-        private void validateUser (User user) {
+        private void validateUser ( User user) {
             if (user.getEmail() == null || !user.getEmail().contains("@")) {
                 throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @.");
             }
