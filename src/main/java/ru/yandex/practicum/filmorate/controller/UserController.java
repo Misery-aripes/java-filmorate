@@ -7,26 +7,28 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final List<User> users = new ArrayList<>();
+    private final Map<Integer, User> users = new HashMap<>();
     private int nextId = 1;
 
     @GetMapping
     public List<User> getAllUsers() {
         log.info("Получен запрос на получение всех пользователей");
-        return users;
+        return new ArrayList<>(users.values());
     }
 
     @PostMapping
     public User createUser(@RequestBody User user) {
         validateUser(user);
         user.setId(nextId++);
-        users.add(user);
+        users.put(user.getId(), user);
         log.info("Добавлен новый пользователь: {}", user);
         return user;
     }
@@ -34,15 +36,13 @@ public class UserController {
     @PutMapping
     public User updateUser(@RequestBody User user) {
         validateUser(user);
-        for (int i = 0; i < users.size(); i++) {
-            if (users.get(i).getId() == user.getId()) {
-                users.set(i, user);
-                log.info("Обновлен пользователь с id: {}", user.getId());
-                return user;
-            }
+        if (!users.containsKey(user.getId())) {
+            log.error("Пользователь с id {} не найден", user.getId());
+            throw new IllegalArgumentException("Пользователь с id " + user.getId() + " не найден.");
         }
-        log.error("Пользователь с id {} не найден", user.getId());
-        throw new IllegalArgumentException("Пользователь с id " + user.getId() + " не найден.");
+        users.put(user.getId(), user);
+        log.info("Обновлен пользователь с id: {}", user.getId());
+        return user;
     }
 
     private void validateUser(User user) {
