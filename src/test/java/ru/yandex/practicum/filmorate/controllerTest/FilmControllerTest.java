@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
@@ -14,16 +15,24 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class FilmControllerTest {
+public class FilmControllerTest {
 
     private FilmController filmController;
+    private InMemoryUserStorage userStorage;
 
     @BeforeEach
     void setUp() {
         InMemoryFilmStorage filmStorage = new InMemoryFilmStorage();
-        InMemoryUserStorage userStorage = new InMemoryUserStorage();
+        userStorage = new InMemoryUserStorage();
         FilmService filmService = new FilmService(filmStorage, userStorage);
         filmController = new FilmController(filmService);
+
+        User user = new User();
+        user.setEmail("user@example.com");
+        user.setLogin("testUser");
+        user.setName("Test User");
+        user.setBirthday(LocalDate.of(1990, 1, 1));
+        userStorage.addUser(user);
     }
 
     @Test
@@ -147,6 +156,6 @@ class FilmControllerTest {
         List<Film> topFilms = filmController.getPopularFilms(1);
 
         assertEquals(1, topFilms.size());
-        assertEquals("Film 2", topFilms.getFirst().getName());
+        assertEquals("Film 2", topFilms.get(0).getName());
     }
 }
