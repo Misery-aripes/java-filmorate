@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controllerTest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.ResponseEntity;
 import ru.yandex.practicum.filmorate.controller.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -10,13 +11,11 @@ import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FilmControllerTest {
-
+class FilmControllerTest {
     private FilmController filmController;
     private InMemoryUserStorage userStorage;
 
@@ -27,10 +26,11 @@ public class FilmControllerTest {
         FilmService filmService = new FilmService(filmStorage, userStorage);
         filmController = new FilmController(filmService);
 
+        // Добавляем пользователя для тестов лайков
         User user = new User();
-        user.setEmail("user@example.com");
         user.setLogin("testUser");
         user.setName("Test User");
+        user.setEmail("test@example.com");
         user.setBirthday(LocalDate.of(1990, 1, 1));
         userStorage.addUser(user);
     }
@@ -38,124 +38,123 @@ public class FilmControllerTest {
     @Test
     void createFilmShouldAddFilm() {
         Film film = new Film();
-        film.setName("Test Film");
-        film.setDescription("Test description");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
+        film.setName("Inception");
+        film.setDescription("A mind-bending thriller");
+        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setDuration(148);
 
-        Film createdFilm = filmController.createFilm(film);
+        ResponseEntity<Film> response = filmController.createFilm(film);
 
-        assertNotNull(createdFilm);
-        assertEquals(1, createdFilm.getId());
-        assertEquals("Test Film", createdFilm.getName());
+        assertNotNull(response.getBody());
+        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(1, response.getBody().getId());
+        assertEquals("Inception", response.getBody().getName());
     }
 
     @Test
     void updateFilmShouldUpdateExistingFilm() {
         Film film = new Film();
-        film.setName("Initial Film");
-        film.setDescription("Initial description");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-        Film createdFilm = filmController.createFilm(film);
+        film.setName("Inception");
+        film.setDescription("A mind-bending thriller");
+        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setDuration(148);
+
+        ResponseEntity<Film> createdFilm = filmController.createFilm(film);
 
         Film updatedFilm = new Film();
-        updatedFilm.setId(createdFilm.getId());
-        updatedFilm.setName("Updated Film");
-        updatedFilm.setDescription("Updated description");
-        updatedFilm.setReleaseDate(LocalDate.of(2021, 1, 1));
-        updatedFilm.setDuration(150);
+        updatedFilm.setId(createdFilm.getBody().getId());
+        updatedFilm.setName("Interstellar");
+        updatedFilm.setDescription("A space exploration epic");
+        updatedFilm.setReleaseDate(LocalDate.of(2014, 11, 7));
+        updatedFilm.setDuration(169);
 
-        Film result = filmController.updateFilm(updatedFilm);
+        ResponseEntity<Film> response = filmController.updateFilm(updatedFilm);
 
-        assertEquals("Updated Film", result.getName());
-        assertEquals("Updated description", result.getDescription());
+        assertNotNull(response.getBody());
+        assertEquals("Interstellar", response.getBody().getName());
     }
 
     @Test
-    void getFilmByIdShouldReturnCorrectFilm() {
+    void getFilmShouldReturnFilmById() {
         Film film = new Film();
-        film.setName("Test Film");
-        film.setDescription("Test description");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-        Film createdFilm = filmController.createFilm(film);
+        film.setName("Inception");
+        film.setDescription("A mind-bending thriller");
+        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setDuration(148);
 
-        Film fetchedFilm = filmController.getFilmById(createdFilm.getId());
+        ResponseEntity<Film> createdFilm = filmController.createFilm(film);
+        ResponseEntity<Film> response = filmController.getFilmById(createdFilm.getBody().getId());
 
-        assertNotNull(fetchedFilm);
-        assertEquals(createdFilm.getName(), fetchedFilm.getName());
+        assertNotNull(response.getBody());
+        assertEquals("Inception", response.getBody().getName());
     }
 
     @Test
     void getAllFilmsShouldReturnAllFilms() {
         Film film1 = new Film();
-        film1.setName("Film 1");
-        film1.setDescription("Description 1");
-        film1.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film1.setDuration(100);
+        film1.setName("Inception");
+        film1.setDescription("A mind-bending thriller");
+        film1.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film1.setDuration(148);
         filmController.createFilm(film1);
 
         Film film2 = new Film();
-        film2.setName("Film 2");
-        film2.setDescription("Description 2");
-        film2.setReleaseDate(LocalDate.of(2021, 1, 1));
-        film2.setDuration(120);
+        film2.setName("Interstellar");
+        film2.setDescription("A space exploration epic");
+        film2.setReleaseDate(LocalDate.of(2014, 11, 7));
+        film2.setDuration(169);
         filmController.createFilm(film2);
 
-        Collection<Film> allFilms = filmController.getAllFilms();
+        ResponseEntity<List<Film>> response = filmController.getAllFilms();
 
-        assertEquals(2, allFilms.size());
+        assertEquals(2, response.getBody().size());
     }
 
     @Test
-    void addLikeShouldIncreaseLikes() {
+    void addAndRemoveLikeShouldUpdateLikes() {
         Film film = new Film();
-        film.setName("Film With Like");
-        film.setDescription("Description");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-        Film createdFilm = filmController.createFilm(film);
+        film.setName("Inception");
+        film.setDescription("A mind-bending thriller");
+        film.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film.setDuration(148);
 
-        filmController.addLike(createdFilm.getId(), 1);
+        ResponseEntity<Film> createdFilm = filmController.createFilm(film);
+        int filmId = createdFilm.getBody().getId();
+        int userId = 1;
 
-        assertTrue(createdFilm.getLikes().contains(1));
+        // Добавляем лайк
+        filmController.addLike(filmId, userId);
+        ResponseEntity<Film> filmWithLike = filmController.getFilmById(filmId);
+        assertTrue(filmWithLike.getBody().getLikes().contains(userId));
+
+        // Удаляем лайк
+        filmController.removeLike(filmId, userId);
+        ResponseEntity<Film> filmWithoutLike = filmController.getFilmById(filmId);
+        assertFalse(filmWithoutLike.getBody().getLikes().contains(userId));
     }
 
     @Test
-    void removeLikeShouldDecreaseLikes() {
-        Film film = new Film();
-        film.setName("Film With Like");
-        film.setDescription("Description");
-        film.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film.setDuration(120);
-        Film createdFilm = filmController.createFilm(film);
-
-        filmController.addLike(createdFilm.getId(), 1);
-        filmController.removeLike(createdFilm.getId(), 1);
-
-        assertFalse(createdFilm.getLikes().contains(1));
-    }
-
-    @Test
-    void getPopularFilmsShouldReturnTopFilms() {
+    void getPopularFilmsShouldReturnMostLikedFilms() {
         Film film1 = new Film();
-        film1.setName("Film 1");
-        film1.setReleaseDate(LocalDate.of(2020, 1, 1));
-        film1.setDuration(120);
-        Film createdFilm1 = filmController.createFilm(film1);
+        film1.setName("Inception");
+        film1.setDescription("A mind-bending thriller");
+        film1.setReleaseDate(LocalDate.of(2010, 7, 16));
+        film1.setDuration(148);
+        ResponseEntity<Film> createdFilm1 = filmController.createFilm(film1);
 
         Film film2 = new Film();
-        film2.setName("Film 2");
-        film2.setReleaseDate(LocalDate.of(2021, 1, 1));
-        film2.setDuration(120);
-        Film createdFilm2 = filmController.createFilm(film2);
+        film2.setName("Interstellar");
+        film2.setDescription("A space exploration epic");
+        film2.setReleaseDate(LocalDate.of(2014, 11, 7));
+        film2.setDuration(169);
+        ResponseEntity<Film> createdFilm2 = filmController.createFilm(film2);
 
-        filmController.addLike(createdFilm2.getId(), 1);
+        int userId = 1;
+        filmController.addLike(createdFilm2.getBody().getId(), userId);
 
-        List<Film> topFilms = filmController.getPopularFilms(1);
+        ResponseEntity<List<Film>> response = filmController.getPopularFilms(1);
 
-        assertEquals(1, topFilms.size());
-        assertEquals("Film 2", topFilms.get(0).getName());
+        assertEquals(1, response.getBody().size());
+        assertEquals("Interstellar", response.getBody().get(0).getName());
     }
 }

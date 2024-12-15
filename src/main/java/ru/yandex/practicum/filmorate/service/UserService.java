@@ -24,10 +24,9 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
 
-        if (user.getFriends().contains(friendId)) {
-            throw new ValidationException("Friend already added.");
+        if (!user.getFriends().add(friendId)) {
+            throw new IllegalArgumentException("Friend already added.");
         }
-        user.getFriends().add(friendId);
         friend.getFriends().add(userId);
     }
 
@@ -35,7 +34,9 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
 
-        user.getFriends().remove(friendId);
+        if (!user.getFriends().remove(friendId)) {
+            throw new IllegalArgumentException("Friend not found.");
+        }
         friend.getFriends().remove(userId);
     }
 
@@ -43,11 +44,8 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         User otherUser = userStorage.getUserById(otherUserId);
 
-        Set<Integer> commonFriendIds = user.getFriends().stream()
+        return user.getFriends().stream()
                 .filter(otherUser.getFriends()::contains)
-                .collect(Collectors.toSet());
-
-        return commonFriendIds.stream()
                 .map(userStorage::getUserById)
                 .collect(Collectors.toList());
     }
@@ -57,9 +55,6 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        if (userStorage.getAllUsers().stream().anyMatch(u -> u.getId() == user.getId())) {
-            throw new ValidationException("User already exists.");
-        }
         return userStorage.addUser(user);
     }
 
@@ -75,6 +70,6 @@ public class UserService {
         User user = userStorage.getUserById(userId);
         return user.getFriends().stream()
                 .map(userStorage::getUserById)
-                .toList();
+                .collect(Collectors.toList());
     }
 }

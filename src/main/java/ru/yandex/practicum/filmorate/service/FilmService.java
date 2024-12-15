@@ -16,7 +16,6 @@ public class FilmService {
 
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
-    private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
@@ -29,7 +28,7 @@ public class FilmService {
         userStorage.getUserById(userId);
 
         if (!film.getLikes().add(userId)) {
-            throw new ValidationException("User already liked the film.");
+            throw new IllegalArgumentException("User already liked the film.");
         }
     }
 
@@ -38,7 +37,7 @@ public class FilmService {
         userStorage.getUserById(userId);
 
         if (!film.getLikes().remove(userId)) {
-            throw new ValidationException("User has not liked the film.");
+            throw new IllegalArgumentException("User has not liked the film.");
         }
     }
 
@@ -54,31 +53,14 @@ public class FilmService {
     }
 
     public Film createFilm(Film film) {
-        validateFilm(film);
         return filmStorage.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        validateFilm(film);
         return filmStorage.updateFilm(film);
     }
 
     public Film getFilmById(int id) {
         return filmStorage.getFilmById(id);
-    }
-
-    private void validateFilm(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            throw new ValidationException("Film name cannot be empty.");
-        }
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
-            throw new ValidationException("Description cannot exceed 200 characters.");
-        }
-        if (film.getReleaseDate() == null || film.getReleaseDate().isBefore(FIRST_FILM_DATE)) {
-            throw new ValidationException("Release date cannot be earlier than December 28, 1895.");
-        }
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Duration must be a positive number.");
-        }
     }
 }

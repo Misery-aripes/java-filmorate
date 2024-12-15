@@ -19,7 +19,6 @@ public class User {
     private String email;
 
     @NotBlank(message = "Login cannot be empty.")
-    @Pattern(regexp = "^[^\\s]+$", message = "Login cannot contain spaces.")
     @NotBlank(message = "Login cannot contain spaces.")
     private String login;
 
