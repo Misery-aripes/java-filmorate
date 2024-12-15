@@ -11,6 +11,7 @@ import java.util.Set;
 
 @Data
 public class User {
+
     private int id;
 
     @NotBlank(message = "Email cannot be empty.")
@@ -18,7 +19,6 @@ public class User {
     private String email;
 
     @NotBlank(message = "Login cannot be empty.")
-    @NotBlank(message = "Login cannot contain spaces.")
     private String login;
 
     private String name;
