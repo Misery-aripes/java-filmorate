@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
 import java.util.List;
 
 //Changed log messages to English
@@ -37,19 +36,14 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film createFilm(@RequestBody Film film) {
+    public Film createFilm(@Valid @RequestBody Film film) {
         log.info("A new movie has been added: {}", film);
-
-        validateFilm(film);
         return filmService.createFilm(film);
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         log.info("Updating film with id: {}", film.getId());
-
-        filmService.getFilmById(film.getId());
-        validateFilm(film);
         return filmService.updateFilm(film);
     }
 
@@ -69,21 +63,5 @@ public class FilmController {
     public List<Film> getPopularFilms(@RequestParam(defaultValue = "10") int count) {
         log.info("Received a request for the top {} popular movies", count);
         return filmService.getPopularFilms(count);
-    }
-
-    private void validateFilm(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            throw new ValidationException("Film name cannot be empty.");
-        }
-        if (film.getDescription() != null && film.getDescription().length() > 200) {
-            throw new ValidationException("Description cannot exceed 200 characters.");
-        }
-        if (film.getReleaseDate() == null || film.getReleaseDate()
-                .isBefore(LocalDate.of(1895, 12, 28))) {
-            throw new ValidationException("Release date cannot be earlier than December 28, 1895.");
-        }
-        if (film.getDuration() <= 0) {
-            throw new ValidationException("Duration must be positive.");
-        }
     }
 }
