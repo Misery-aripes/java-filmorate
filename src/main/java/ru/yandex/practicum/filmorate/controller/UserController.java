@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -37,12 +38,21 @@ public class UserController {
     @PostMapping
     public User createUser(@RequestBody User user) {
         log.info("A new user has been added: {}", user);
+
+        if (user.getLogin() == null || user.getLogin().isBlank()) {
+            throw new ValidationException("Login cannot be empty.");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
         return userService.createUser(user);
     }
 
     @PutMapping
     public User updateUser(@RequestBody User user) {
-        log.info("The user with the id has been updated: {}", user.getId());
+        log.info("Updating user with id: {}", user.getId());
+
+        userService.getUserById(user.getId());
         return userService.updateUser(user);
     }
 

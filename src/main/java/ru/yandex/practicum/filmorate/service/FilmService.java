@@ -15,21 +15,31 @@ import java.util.stream.Collectors;
 public class FilmService {
 
     private final FilmStorage filmStorage;
+    private final UserStorage userStorage;
     private static final LocalDate FIRST_FILM_DATE = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
         this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
     }
 
     public void addLike(int filmId, int userId) {
         Film film = filmStorage.getFilmById(filmId);
-        film.getLikes().add(userId);
+        userStorage.getUserById(userId);
+
+        if (!film.getLikes().add(userId)) {
+            throw new ValidationException("User already liked the film.");
+        }
     }
 
     public void removeLike(int filmId, int userId) {
         Film film = filmStorage.getFilmById(filmId);
-        film.getLikes().remove(userId);
+        userStorage.getUserById(userId);
+
+        if (!film.getLikes().remove(userId)) {
+            throw new ValidationException("User has not liked the film.");
+        }
     }
 
     public List<Film> getPopularFilms(int count) {
