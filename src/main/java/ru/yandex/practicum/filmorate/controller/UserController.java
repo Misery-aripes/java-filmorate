@@ -7,7 +7,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.List;
+
 //Changed log messages to English
+
 @Slf4j
 @RestController
 @RequestMapping("/users")
