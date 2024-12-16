@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -10,6 +11,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import java.time.LocalDate;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
@@ -62,7 +64,7 @@ public class FilmController {
     @GetMapping("/popular")
     public List<Film> getTopOfFilms(@RequestParam(defaultValue = "10", required = false) Integer count) {
         if (count <= 0) {
-            throw new IllegalArgumentException("Параметр count должен быть положительным числом.");
+            throw new IllegalArgumentException("The count parameter must be a positive number.");
         }
         return filmService.getTopOfFilms(count);
     }
