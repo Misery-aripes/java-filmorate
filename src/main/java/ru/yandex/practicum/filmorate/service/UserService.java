@@ -24,92 +24,80 @@ public class UserService {
     }
 
     public User createUser(User user) {
-        log.debug("Создание нового пользователя: {}", user);
-        return userStorage.addUser(user);
+        return userStorage.createUser(user);
     }
 
     public User updateUser(User user) {
-        log.debug("Обновление пользователя с id = {}", user.getId());
         return userStorage.updateUser(user);
     }
 
     public User getUser(int id) {
-        log.debug("Получение пользователя с id = {}", id);
-        return userStorage.getUserById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Пользователь с id = " + id + " не найден"));
+        return userStorage.getUser(id)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + id + " not found"));
     }
 
     public User deleteUser(int id) {
-        User user = getUser(id); // Проверяем, существует ли пользователь
-        userStorage.deleteUserById(id);
-        log.info("Пользователь с id = {} был удалён", id);
-        return user;
+        return userStorage.deleteUser(id)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + id + " not found"));
     }
 
     public Collection<User> getAllUsers() {
         return userStorage.getAllUsers();
     }
 
-/*    public List<User> addFriends(int idOfPerson1, int idOfPerson2) {
-        User user1 = getUser(idOfPerson1);
-        User user2 = getUser(idOfPerson2);
-
-        if (user1.getFriends().contains(idOfPerson2)) {
-            throw new InternalServerException("Пользователи уже являются друзьями");
-        }
-
-        user1.getFriends().add(idOfPerson2);
-        user2.getFriends().add(idOfPerson1);
-
-        log.info("Пользователи с id: {} и {} теперь друзья", idOfPerson1, idOfPerson2);
-        return List.of(user1, user2);
-    }*/
-
     public List<User> addFriends(int idOfPerson1, int idOfPerson2) {
-        // Проверяем, существуют ли оба пользователя
-        User user1 = getUser(idOfPerson1);
-        User user2 = getUser(idOfPerson2);
+        User user1 = userStorage.getUser(idOfPerson1)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson1 + " not found"));
+        User user2 = userStorage.getUser(idOfPerson2)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson2 + " not found"));
 
         if (user1.getFriends().contains(idOfPerson2)) {
-            throw new InternalServerException("Пользователи уже являются друзьями");
+            throw new InternalServerException("Users are already friends");
         }
 
-        user1.getFriends().add(idOfPerson2);
-        user2.getFriends().add(idOfPerson1);
+        user1.addFriend(idOfPerson2);
+        user2.addFriend(idOfPerson1);
 
-        log.info("Пользователи с id: {} и {} теперь друзья", idOfPerson1, idOfPerson2);
+        log.info("Users with id: {} and {} are now friends", idOfPerson1, idOfPerson2);
         return List.of(user1, user2);
     }
 
     public List<User> deleteFriends(int idOfPerson1, int idOfPerson2) {
-        User user1 = getUser(idOfPerson1);
-        User user2 = getUser(idOfPerson2);
+        User user1 = userStorage.getUser(idOfPerson1)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson1 + " not found"));
+        User user2 = userStorage.getUser(idOfPerson2)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson2 + " not found"));
 
-        user1.getFriends().remove(idOfPerson2);
-        user2.getFriends().remove(idOfPerson1);
+        user1.removeFriend(idOfPerson2);
+        user2.removeFriend(idOfPerson1);
 
-        log.info("Пользователи {} и {} больше не друзья", idOfPerson1, idOfPerson2);
+        log.info("Users {} and {} are no longer friends", idOfPerson1, idOfPerson2);
         return List.of(user1, user2);
     }
 
     public List<User> getFriendsListOfPerson(int id) {
-        User user = getUser(id);
+        User user = userStorage.getUser(id)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + id + " not found"));
 
-        log.info("Список друзей пользователя с id: {}", id);
+        log.info("The list of friends of the user with the id: {}", id);
         return user.getFriends().stream()
-                .map(friendId -> getUser(friendId)) // Используем метод getUser для проверки существования друга
+                .map(friendId -> userStorage.getUser(friendId)
+                        .orElseThrow(() -> new ObjectNotFoundException("Friend with id: " + friendId + " not found")))
                 .collect(Collectors.toList());
     }
 
     public List<User> getListOfCommonFriends(int idOfPerson1, int idOfPerson2) {
-        User firstPerson = getUser(idOfPerson1);
-        User secondPerson = getUser(idOfPerson2);
+        User firstPerson = userStorage.getUser(idOfPerson1)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson1 + " not found"));
+        User secondPerson = userStorage.getUser(idOfPerson2)
+                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + idOfPerson2 + " not found"));
 
-        log.info("Список общих друзей пользователей с id: {} и {}", idOfPerson1, idOfPerson2);
+        log.info("A list of mutual friends of users with an id: {} и {}", idOfPerson1, idOfPerson2);
 
         return firstPerson.getFriends().stream()
                 .filter(secondPerson.getFriends()::contains)
-                .map(this::getUser) // Используем метод getUser для проверки существования друга
+                .map(friendId -> userStorage.getUser(friendId)
+                        .orElseThrow(() -> new ObjectNotFoundException("Friend with id: " + friendId + " not found")))
                 .collect(Collectors.toList());
     }
 }
