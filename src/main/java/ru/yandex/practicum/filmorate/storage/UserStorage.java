@@ -6,9 +6,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserStorage {
-    User addUser(User user);              // Добавление пользователя
-    User updateUser(User user);           // Обновление пользователя
-    Optional<User> getUserById(int id);   // Получение пользователя по id
-    void deleteUserById(int id);          // Удаление пользователя по id
-    List<User> getAllUsers();             // Получение всех пользователей
+
+    User addUser(User user);
+
+    User updateUser(User user);
+
+    Optional<User> getUserById(int id);
+
+    void deleteUserById(int id);
+
+    List<User> getAllUsers();
 }
