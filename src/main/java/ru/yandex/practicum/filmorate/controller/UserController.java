@@ -1,59 +1,67 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+
+import java.util.*;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-
     private final UserService userService;
 
-    @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        validateUser(user);
-        User createdUser = userService.createUser(user);
-        log.info("User created: {}", createdUser);
-        return ResponseEntity.ok(createdUser);
+    @GetMapping
+    public List<User> getAllUsers() {
+        log.info("Получен запрос на получение всех пользователей");
+        return new ArrayList<>(userService.getAllUsers());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable int id) {
-        validateId(id);
-        User user = userService.getUser(id);
-        log.info("Retrieved user with id {}", id);
-        return ResponseEntity.ok(user);
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        log.info("Получен запрос на создание пользователя: {}", user);
+        return userService.createUser(user);
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
-        validateUser(user);
-        User updatedUser = userService.updateUser(user);
-        log.info("Updated user with id {}", updatedUser.getId());
-        return ResponseEntity.ok(updatedUser);
+    public User updateUser(@RequestBody User user) {
+        log.info("Получен запрос на обновление пользователя с id: {}", user.getId());
+        return userService.updateUser(user);
     }
 
-    private void validateId(int id) {
-        if (id <= 0) {
-            throw new ValidationException("ID must be positive.");
-        }
+    @DeleteMapping("/{id}")
+    public User deleteUser(@PathVariable int id) {
+        log.info("Получен запрос на удаление пользователя с id: {}", id);
+        return userService.deleteUser(id);
     }
 
-    private void validateUser(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+    @PostMapping("/{id}/friends/{friendId}")
+    public List<User> addFriends(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Получен запрос на добавление друга: {} -> {}", id, friendId);
+        return userService.addFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public List<User> deleteFriends(@PathVariable int id, @PathVariable int friendId) {
+        log.info("Получен запрос на удаление друга: {} -> {}", id, friendId);
+        return userService.deleteFriends(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendsList(@PathVariable int id) {
+        log.info("Получен запрос на список друзей пользователя с id: {}", id);
+        return userService.getFriendsListOfPerson(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+        log.info("Получен запрос на список общих друзей между пользователями с id: {} и {}", id, otherId);
+        return userService.getListOfCommonFriends(id, otherId);
     }
 }

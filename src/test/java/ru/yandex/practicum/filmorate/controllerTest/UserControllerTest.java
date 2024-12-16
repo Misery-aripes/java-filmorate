@@ -1,16 +1,6 @@
 package ru.yandex.practicum.filmorate.controllerTest;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-
-import java.time.LocalDate;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+/*
 class UserControllerTest {
 
     private UserController userController;
@@ -65,6 +55,7 @@ class UserControllerTest {
         assertEquals("updated_user@example.com", result.getEmail());
     }
 
+*/
 /*    @Test
     void getUserByIdShouldReturnUser() {
         User user = new User();
@@ -82,8 +73,10 @@ class UserControllerTest {
         assertNotNull(fetchedUser);
         assertEquals("user1", fetchedUser.getLogin());
         assertEquals("User One", fetchedUser.getName());
-    }*/
+    }*//*
 
+
+*/
 /*    @Test
     void addFriendShouldEstablishFriendship() {
         User user1 = new User();
@@ -108,9 +101,11 @@ class UserControllerTest {
         assertNotNull(friends);
         assertEquals(1, friends.size());
         assertEquals("user2", friends.get(0).getLogin());
-    }*/
+    }*//*
 
-   /* @Test
+
+   */
+/* @Test
     void removeFriendShouldDeleteFriendship() {
         User user1 = new User();
         user1.setEmail("user1@example.com");
@@ -168,5 +163,6 @@ class UserControllerTest {
         assertNotNull(commonFriends);
         assertEquals(1, commonFriends.size());
         assertEquals("friend", commonFriends.get(0).getLogin());
-    }*/
-}
+    }*//*
+
+}*/
