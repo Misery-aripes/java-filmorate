@@ -2,7 +2,6 @@ package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -22,7 +21,6 @@ public class User {
     String email;
 
     @NotBlank(message = "The login cannot be empty and contain spaces")
-    @NotEmpty(message = "The login cannot be empty")
     String login;
 
     String name;
