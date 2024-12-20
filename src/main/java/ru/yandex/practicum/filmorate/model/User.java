@@ -1,40 +1,35 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.PastOrPresent;
-import lombok.AccessLevel;
+import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
 @Data
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
+    private Integer id;
+    @NotBlank
+    @Email
+    private String email;
+    @NotBlank
+    @Pattern(regexp = "^\\S+$")
+    private String login;
+    private String name;
+    @PastOrPresent
+    @NotNull
+    private LocalDate birthday;
 
-    int id;
-
-    @Email(message = "There is an error in the email address")
-    String email;
-
-    @NotBlank(message = "The login cannot be empty and contain spaces")
-    String login;
-
-    String name;
-
-    @PastOrPresent(message = "The date of birth cannot be in the future")
-    LocalDate birthday;
-
-    Set<Integer> friends = new HashSet<>();
-
-    public void addFriend(int friendId) {
-        friends.add(friendId);
-    }
-
-    public void removeFriend(int friendId) {
-        friends.remove(friendId);
+    public String getName() {
+        if (name == null || name.isBlank()) {
+            return login;
+        } else {
+            return name;
+        }
     }
 }
