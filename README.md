@@ -1,3 +1,3 @@
 # java-filmorate
 Diagram-database
-![Диаграмма базы данных](diagram.png)
+![Диаграмма базы данных](Diagram.png)
