@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import jakarta.validation.ValidationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
@@ -15,18 +17,21 @@ public class ErrorHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class, ValidationException.class,
             DataIntegrityViolationException.class})
     public ErrorResponse handleValidationException(final Exception e) {
+        log.debug("Validation error occurred: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler
     public ErrorResponse handleNotFoundException(final NotFoundException e) {
+        log.debug("Resource not found: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler
     public ErrorResponse handleException(final Throwable e) {
+        log.error("Unexpected error occurred: {}", e.getMessage(), e);
         return new ErrorResponse(e.getMessage());
     }
 
