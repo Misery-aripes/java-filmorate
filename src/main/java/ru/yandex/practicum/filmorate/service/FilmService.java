@@ -2,84 +2,84 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.ObjectNotFoundException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.GenreRepository;
+import ru.yandex.practicum.filmorate.storage.LikesRepository;
 
 import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
-@Service
 @Slf4j
+@Service
 public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
 
-    @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    private final FilmStorage filmStorage;
+    private final GenreRepository genreRepository;
+    private final LikesRepository likesRepository;
+
+    public FilmService(@Autowired @Qualifier("filmRepository") FilmStorage filmStorage,
+                       @Autowired GenreRepository genreRepository,
+                       @Autowired LikesRepository likesRepository) {
         this.filmStorage = filmStorage;
-        this.userStorage = userStorage;
+        this.genreRepository = genreRepository;
+        this.likesRepository = likesRepository;
     }
 
-    public Film createFilm(Film film) {
-        return filmStorage.createFilm(film);
+    public void addLike(int filmId, int userId) {
+        filmStorage.getFilmById(filmId);
+        likesRepository.addLike(filmId, userId);
+        log.info("User {} liked film {}", userId, filmId);
+    }
+
+    public void deleteLike(int filmId, int userId) {
+        filmStorage.getFilmById(filmId);
+        likesRepository.deleteLike(filmId, userId);
+        log.info("The user {} canceled the movie's like {}", userId, filmId);
+    }
+
+    public Film getFilmById(Integer id) {
+        return filmStorage.getFilmById(id);
+    }
+
+    public Collection<Film> getTopFilms(Integer count) {
+        return filmStorage.getTopFilms(count);
+    }
+
+    public Collection<Film> getFilms() {
+        return filmStorage.getFilms();
+    }
+
+    public Film addFilm(Film film) {
+        Film createdFilm = filmStorage.addFilm(film);
+        if (!createdFilm.getGenres().isEmpty()) {
+            genreRepository.addGenres(createdFilm.getId(), createdFilm.getGenres()
+                    .stream()
+                    .map(Genre::getId)
+                    .toList());
+        }
+        return createdFilm;
     }
 
     public Film updateFilm(Film film) {
-        return filmStorage.updateFilm(film);
-    }
-
-    public Film deleteFilm(int id) {
-        Film film = filmStorage.getFilm(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Movie with id: " + id + " not found"));
-        filmStorage.deleteFilm(id);
-        log.info("Фильм с id = {} был удален", id);
-        return film;
-    }
-
-    public Film getFilm(int id) {
-        return filmStorage.getFilm(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Movie with id: " + id + " not found"));
-    }
-
-    public Collection<Film> getAllFilms() {
-        return filmStorage.getAllFilms();
-    }
-
-    public Film likeTheFilm(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId)
-                .orElseThrow(() -> new ObjectNotFoundException("Movie with id: " + filmId + " not found"));
-
-        userStorage.getUser(userId)
-                .orElseThrow(() -> new ObjectNotFoundException("User with id: " + userId + " not found"));
-
-        film.addLike(userId);
-        log.info("User with id: {} liked the movie with an id: {}", userId, filmId);
-        return film;
-    }
-
-    public Film removeLike(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId)
-                .orElseThrow(() -> new ObjectNotFoundException("Movie with id: " + filmId + " not found"));
-
-        if (userStorage.getUser(userId).isEmpty()) {
-            throw new ObjectNotFoundException("User with id: " + userId + " not found");
+        if (filmStorage.getFilmById(film.getId()) == null) {
+            throw new NotFoundException("A movie with this id was not found");
         }
-
-        film.removeLike(userId);
-        log.info("A like from a user with id: {} was deleted from a movie with id: {}", userId, filmId);
-        return film;
+        Film updatedFilm = filmStorage.updateFilm(film);
+        if (!updatedFilm.getGenres().isEmpty()) {
+            genreRepository.deleteGenres(updatedFilm.getId());
+            genreRepository.addGenres(updatedFilm.getId(), updatedFilm.getGenres()
+                    .stream()
+                    .map(Genre::getId)
+                    .toList());
+        }
+        return updatedFilm;
     }
 
-    public List<Film> getTopOfFilms(Integer count) {
-        log.info("Getting top: {} movies by likes", count);
-        return filmStorage.getAllFilms().stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getUsersLikes().size()).reversed())
-                .limit(count)
-                .collect(Collectors.toList());
+    public void deleteFilm(Integer id) {
+        filmStorage.deleteFilm(id);
     }
 }

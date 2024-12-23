@@ -1,101 +1,78 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
-import java.util.*;
+import java.util.Collection;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<User> getUsers() {
+        return userService.getUsers();
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public User createUser(@Valid @RequestBody User user) {
-        validateUser(user);
+        log.info("A user has been added: {}", user);
         return userService.createUser(user);
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) {
-        validateUser(user);
-        return userService.updateUser(user);
+    @ResponseStatus(HttpStatus.OK)
+    public User updateUser(@Valid @RequestBody User updatedUser) {
+        log.info("User updated: {}", updatedUser);
+        return userService.updateUser(updatedUser);
     }
 
-    @DeleteMapping("/{id}")
-    public User deleteUser(@PathVariable int id) {
-        validateId(id);
-        return userService.deleteUser(id);
-    }
-
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/{id}")
     public User getUser(@PathVariable int id) {
-        validateId(id);
-        return userService.getUser(id);
+        return userService.getUserById(id);
     }
 
-    @GetMapping
-    public Collection<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
+    @ResponseStatus(HttpStatus.OK)
     @PutMapping("/{id}/friends/{friendId}")
-    public List<User> addFriends(@PathVariable int id, @PathVariable int friendId) {
-        validateId(id);
-        validateId(friendId);
-        return userService.addFriends(id, friendId);
+    public void addFriend(@PathVariable int id,
+                          @PathVariable int friendId) {
+        userService.addFriend(id, friendId);
     }
 
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{id}/friends")
+    public Collection<User> getFriends(@PathVariable int id) {
+        return userService.getFriends(id);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable int id,
+                                             @PathVariable("otherId") int friendId) {
+        return userService.getCommonFriends(id, friendId);
+    }
+
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}/friends/{friendId}")
-    public List<User> deleteFriends(@PathVariable int id, @PathVariable int friendId) {
-        validateId(id);
-        validateId(friendId);
-        return userService.deleteFriends(id, friendId);
+    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
+        userService.deleteFriend(id, friendId);
     }
 
-    @GetMapping("{id}/friends")
-    public List<User> getFriendsListOfPerson(@PathVariable int id) {
-        validateId(id);
-        return userService.getFriendsListOfPerson(id);
-    }
-
-    @GetMapping("/{id}/friends/common/{friendId}")
-    public List<User> getListOfCommonFriends(@PathVariable int id, @PathVariable int friendId) {
-        validateId(id);
-        validateId(friendId);
-        return userService.getListOfCommonFriends(id, friendId);
-    }
-
-    private void validateUser(User user) {
-        Objects.requireNonNull(user, "The user cannot be null");
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
-            throw new ValidationException("The login cannot be empty or contain spaces.");
-        }
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getEmail() == null || !user.getEmail().contains("@")) {
-            throw new ValidationException("Invalid email format.");
-        }
-        if (user.getBirthday() != null && user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidationException("The date of birth cannot be in the future.");
-        }
-    }
-
-    private void validateId(int id) {
-        if (id <= 0) {
-            throw new IllegalArgumentException("The ID must be a positive number.");
-        }
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable int id) {
+        userService.deleteUser(id);
     }
 }
